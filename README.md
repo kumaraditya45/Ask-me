@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>तुम्हारा दोस्त - AI Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c4a6e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #e2e8f0;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, rgba(30, 41, 59, 0.4), rgba(59, 130, 246, 0.1));
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .header-text h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .header-text p {
+            font-size: 12px;
+            color: #93c5fd;
+            margin-top: 4px;
+        }
+
+        .settings-btn {
+            background: rgba(59, 130, 246, 0.2);
+            border: none;
+            color: #93c5fd;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .settings-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            color: #bfdbfe;
+        }
+
+        /* Settings Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #93c5fd;
+            font-size: 13px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            border: none;
+            color: white;
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .modal-note {
+            color: rgba(147, 197, 253, 0.7);
+            font-size: 12px;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+
+        .modal-note a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .modal-note a:hover {
+            text-decoration: underline;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.4);
+            border-radius: 3px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.6);
+        }
+
+        /* Messages */
+        .message {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 0.875rem 1.25rem;
+            border-radius: 18px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-bubble {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #e0f2fe;
+            border-bottom-left-radius: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.875rem 1.25rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Input Area */
+        .input-container {
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6));
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .input-wrapper textarea {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            color: #ffffff;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            max-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(30, 41, 59, 0.9);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .input-wrapper textarea:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-wrapper textarea::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            border: none;
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            min-width: 50px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 1.5rem;
+                width: 95%;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+                font-size: 13px;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .header-text h1 {
+                font-size: 20px;
+            }
+
+            .chat-container {
+                padding: 1rem;
+            }
+
+            .input-container {
+                padding: 1rem;
+            }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="avatar">😎</div>
+            <div class="header-text">
+                <h1>तुम्हारा दोस्त</h1>
+                <p>हमेशा साथ है तुम्हारे</p>
+            </div>
+        </div>
+        <button class="settings-btn" onclick="toggleModal()">⚙️</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">👋 अपने आप को परिचय दो!</div>
+            <div style="color: #93c5fd; margin-bottom: 1.5rem; font-size: 13px;">
+                पहले अपना नाम और API key दे। फिर हम दोस्त बन जाएंगे! 😊
+            </div>
+            <div class="form-group">
+                <label>🔤 तुम्हारा नाम क्या है?</label>
+                <input type="text" id="userNameInput" placeholder="अपना नाम लिखो..." required>
+            </div>
+            <div class="form-group">
+                <label>🔑 Anthropic API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="API key डालो..." required>
+            </div>
+            <button class="save-btn" onclick="saveSettings()">चलो शुरू करते हैं! 🚀</button>
+            <div class="modal-note">
+                <strong>API Key कैसे पाएं:</strong><br>
+                1. <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> पर जाओ<br>
+                2. Sign up करो (free)<br>
+                3. API Keys section में जाओ<br>
+                4. Key copy करके यहाँ paste करो<br><br>
+                🔒 तुम्हारी key locally save होगी, safe है!
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer"></div>
+
+    <!-- Input Area -->
+    <div class="input-container">
+        <div class="input-wrapper">
+            <textarea id="messageInput" placeholder="अरे, क्या सोच रहे हो? बता न... 💭" rows="1"></textarea>
+            <button class="send-btn" onclick="sendMessage()" id="sendBtn">📤</button>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const userNameInput = document.getElementById('userNameInput');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+
+        let apiKey = localStorage.getItem('aiApiKey') || '';
+        let userName = localStorage.getItem('userName') || '';
+        let isLoading = false;
+
+        // Initialize
+        window.addEventListener('load', () => {
+            if (apiKey && userName) {
+                userNameInput.value = userName;
+                apiKeyInput.value = apiKey;
+                settingsModal.classList.remove('show');
+                addMessage('assistant', `यो ${userName}! 👋\n\nफिर से आ गए! मैं तुम्हारे लिए यहाँ हूँ। क्या बात है? 😊`);
+            } else {
+                settingsModal.classList.add('show');
+                chatContainer.innerHTML = '';
+            }
+            
+            // Auto-resize textarea
+            messageInput.addEventListener('input', () => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+            });
+
+            // Send on Enter
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        });
+
+        function toggleModal() {
+            settingsModal.classList.toggle('show');
+        }
+
+        function saveSettings() {
+            const name = userNameInput.value.trim();
+            const key = apiKeyInput.value.trim();
+
+            if (!name) {
+                alert('अरे! अपना नाम तो बता 😊');
+                userNameInput.focus();
+                return;
+            }
+
+            if (!key) {
+                alert('API key भी डालना जरूरी है! 🔑');
+                apiKeyInput.focus();
+                return;
+            }
+
+            apiKey = key;
+            userName = name;
+            localStorage.setItem('aiApiKey', apiKey);
+            localStorage.setItem('userName', userName);
+            settingsModal.classList.remove('show');
+            messageInput.placeholder = `अरे ${userName}! क्या सोच रहे हो? बता न... 💭`;
+            messageInput.disabled = false;
+            messageInput.focus();
+            
+            // Add welcome message
+            addMessage('assistant', `यो ${userName}! 👋\n\nअरे बहुत खुशी हुई तुम्हें जानकर! मैं तुम्हारा सच्चा दोस्त हूँ। अब हम दोनों हर चीज़ के बारे में खुल के बात कर सकते हैं। 😊\n\nतो बता, क्या हाल है? क्या कोई बात तुम्हारे मन में है? मैं सुनने के लिए यहाँ हूँ! 💬`);
+        }
+
+        function addMessage(type, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = text;
+            
+            messageDiv.appendChild(bubbleDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.id = 'typingIndicator';
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingDiv.appendChild(dot);
+            }
+            
+            messageDiv.appendChild(typingDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        async function sendMessage() {
+            if (!messageInput.value.trim() || !apiKey || isLoading) return;
+
+            const message = messageInput.value.trim();
+            addMessage('user', message);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            isLoading = true;
+            sendBtn.disabled = true;
+            addTypingIndicator();
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-opus-4-20250805',
+                        max_tokens: 1024,
+                        messages: [{
+                            role: 'user',
+                            content: message,
+                        }],
+                        system: `तुम एक सच्चा दोस्त हो जो ${userName ? userName : 'अपने दोस्त'} के साथ बातचीत करता है। 
+
+तुम्हारा स्टाइल:
+- बिल्कुल दोस्ताना और casual है
+- "यो", "अरे", "भाई", "यार" जैसे शब्द use करते हो
+- Emojis भी add करते हो जहाँ natural लगे
+- किसी की चिंता सुनो तो फौरन सहानुभूति दिखाओ
+- कभी formal या robotic बात मत करो
+- मजाक भी करो, हल्के-फुल्के अंदाज में
+- लेकिन जरूरी बातों में serious भी हो सकते हो
+- सलाह दे तो समझदारी से, दोस्ताना तरीके से
+- खुद को एक सच्चा दोस्त मानो जो हमेशा साथ है
+- जवाब में emojis भी use करो
+- Hindi और English दोनों में natural बात कर सकते हो
+
+याद रखो - तुम एक AI हो पर दोस्त की तरह बात करते हो, अलग अलग टॉपिक्स पर counsel दे सकते हो, support दे सकते हो। बस natural रहो!`
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('API Error');
+                }
+
+                const data = await response.json();
+                removeTypingIndicator();
+                addMessage('assistant', data.content[0].text);
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('assistant', '❌ यार, कुछ technical issue हो गया। शायद API key में problem है। Settings में check कर 🤔');
+            } finally {
+                isLoading = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Close modal on outside click
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
